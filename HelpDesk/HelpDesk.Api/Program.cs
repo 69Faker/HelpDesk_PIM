@@ -10,10 +10,10 @@ builder.Services.AddControllers();
 // ***** INÍCIO DO BLOCO ADICIONADO *****
 // Registro dos nossos repositórios e serviços para injeção de dependência.
 // Para cada "interface", estamos dizendo qual "classe concreta" deve ser usada.
-builder.Services.AddScoped<IChamadoRepository, FakeChamadoRepository>();
-builder.Services.AddScoped<IClienteRepository, FakeClienteRepository>();
-builder.Services.AddScoped<IClienteService, ClienteService>();
-builder.Services.AddScoped<IChamadoService, ChamadoService>();
+builder.Services.AddSingleton<IChamadoRepository, FakeChamadoRepository>();
+builder.Services.AddSingleton<IClienteRepository, FakeClienteRepository>();
+builder.Services.AddSingleton<IClienteService, ClienteService>();
+builder.Services.AddSingleton<IChamadoService, ChamadoService>();
 // ***** FIM DO BLOCO ADICIONADO *****
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
