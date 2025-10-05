@@ -52,6 +52,26 @@ namespace HelpDesk.Api.Controllers
                 return StatusCode(500, $"Ocorreu um erro interno: {ex.Message}");
             }
         }
+        // PUT: api/clientes/1/alterar-senha
+        [HttpPut("{id}/alterar-senha")]
+        public async Task<IActionResult> AlterarSenha(int id, [FromBody] ClienteAlterarSenhaRequestDto requestDto)
+        {
+            try
+            {
+                // Chama o serviço que já tem a lógica de negócio pronta
+                await _clienteService.AlterarSenhaAsync(id, requestDto.SenhaAntiga, requestDto.NovaSenha);
+
+                // Se o serviço executou sem erros, a senha foi alterada.
+                // Retornamos 204 No Content, que significa "Sucesso, nada a devolver".
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                // Se o serviço lançou uma exceção (ex: "Senha antiga incorreta"),
+                // retornamos um 400 Bad Request com a mensagem de erro.
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
         // Aqui, no futuro, podemos adicionar outros endpoints como:
         // - POST /api/clientes (para registrar um novo cliente)

@@ -1,6 +1,7 @@
 // Local: HelpDesk.Api/Controllers/ChamadosController.cs
 
 using HelpDesk.Api.Data.Repositories;
+using HelpDesk.Api.Models;
 using HelpDesk.Api.Services;
 using HelpDesk.Shared.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +55,8 @@ namespace HelpDesk.Api.Controllers
 			{
 				var novoChamado = await _chamadoService.AbrirChamadoAsync(
 					requestDto.ClienteId,
-					requestDto.Titulo,
+                    requestDto.Categoria,
+                    requestDto.Titulo,
 					requestDto.Descricao);
 
 				// Mapeamento manual para o DTO de detalhes para a resposta
@@ -88,5 +90,48 @@ namespace HelpDesk.Api.Controllers
 			// Aqui também faremos o mapeamento para DTO
 			return Ok(chamado); // Por enquanto, retornamos o modelo
 		}
-	}
+        // POST: api/chamados/5/mensagens
+        [HttpPost("{chamadoId}/mensagens")]
+        public async Task<IActionResult> AdicionarMensagem(int chamadoId, [FromBody] MensagemCreateRequestDto requestDto)
+        {
+            try
+            {
+                // Mapeamos o DTO para o nosso modelo de domínio
+                var novaMensagem = new Mensagem
+                {
+                    Texto = requestDto.Texto,
+                    Autor = requestDto.Autor
+                    // A data de envio e o ChamadoId serão definidos pelo serviço
+                };
+
+                await _chamadoService.AdicionarMensagemAsync(chamadoId, novaMensagem);
+
+                // Se a operação foi bem-sucedida, retornamos 204 No Content,
+                // que é um status apropriado para "operação concluída, nada a devolver".
+                // Ou poderíamos retornar 200 OK com o chamado atualizado.
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                // Se o serviço lançar uma exceção (ex: chamado não encontrado), retornamos um erro.
+                // Um erro 404 seria mais específico se soubermos que foi "não encontrado".
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPut("{chamadoId}/cancelar")]
+        public async Task<IActionResult> CancelarChamado(int chamadoId)
+        {
+            try
+            {
+                await _chamadoService.CancelarChamadoAsync(chamadoId);
+                return NoContent(); // Sucesso, sem conteúdo para retornar.
+            }
+            catch (Exception ex)
+            {
+                // Se o serviço lançar uma exceção, retornamos como BadRequest.
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+    }
 }

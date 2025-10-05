@@ -19,7 +19,7 @@ namespace HelpDesk.Api.Services
             _clienteRepository = clienteRepository;
         }
 
-        public async Task<Chamado> AbrirChamadoAsync(int clienteId, string titulo, string descricao)
+        public async Task<Chamado> AbrirChamadoAsync(int clienteId, CategoriaChamado categoria,string titulo, string descricao)
         {
             // Regra de negócio: Verifica se o cliente existe antes de abrir o chamado
             var cliente = await _clienteRepository.GetByIdAsync(clienteId);
@@ -31,6 +31,7 @@ namespace HelpDesk.Api.Services
             var novoChamado = new Chamado
             {
                 ClienteId = clienteId,
+                Categoria = categoria,
                 Titulo = titulo,
                 Descricao = descricao,
                 DataAbertura = DateTime.UtcNow,
@@ -70,5 +71,31 @@ namespace HelpDesk.Api.Services
             var todosOsChamados = await _chamadoRepository.GetAllAsync();
             return todosOsChamados.Where(c => c.ClienteId == clienteId);
         }
+        public async Task CancelarChamadoAsync(int chamadoId)
+        {
+            var chamado = await _chamadoRepository.GetByIdAsync(chamadoId);
+            if (chamado == null)
+            {
+                throw new Exception("Chamado não encontrado.");
+            }
+
+            // Regra de Negócio: Não se pode cancelar um chamado que já foi finalizado.
+            if (chamado.Status == StatusChamado.FINALIZADO)
+            {
+                throw new Exception("Não é possível cancelar um chamado que já foi finalizado.");
+            }
+
+            // Regra de Negócio: Se o chamado já está cancelado, não fazemos nada.
+            if (chamado.Status == StatusChamado.CANCELADO)
+            {
+                return; // Já está cancelado, operação bem-sucedida.
+            }
+
+            chamado.Status = StatusChamado.CANCELADO;
+            chamado.DataFechamento = DateTime.UtcNow;
+
+            await _chamadoRepository.UpdateAsync(chamado);
+        }
+
     }
 }

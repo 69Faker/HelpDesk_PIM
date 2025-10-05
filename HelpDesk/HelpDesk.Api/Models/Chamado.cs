@@ -5,6 +5,7 @@ namespace HelpDesk.Api.Models
     public class Chamado
     {
         public int IdChamado { get; set; }
+        public CategoriaChamado Categoria { get; set; }
         public string Titulo { get; set; } = string.Empty;
         public string Descricao { get; set; } = string.Empty;
         public DateTime DataAbertura { get; set; }
