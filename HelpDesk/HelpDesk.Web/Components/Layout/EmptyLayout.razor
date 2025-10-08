@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
+
+@Body
+
+@code {
+    private bool _isDarkMode = true; // Força o modo escuro
+
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Default,
+            Secondary = Colors.Blue.Lighten1,
+            Background = "#1f2937",
+            AppbarBackground = "#1f2937",
+            Surface = "#111827",
+            DrawerBackground = "#111827",
+            TextPrimary = "rgba(255,255,255, 0.87)",
+            TextSecondary = "rgba(255,255,255, 0.60)",
+            ActionDefault = "rgba(255,255,255, 0.70)",
+        }
+    };
+}
