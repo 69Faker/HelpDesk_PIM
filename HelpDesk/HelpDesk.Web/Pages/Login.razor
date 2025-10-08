@@ -1,0 +1,82 @@
+﻿@page "/login"
+@layout EmptyLayout
+@inject NavigationManager NavigationManager
+
+
+<MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center" Class="h-screen">
+    <MudItem xs="11" sm="8" md="4">
+
+        <MudPaper Class="pa-8" Elevation="3">
+            <div class="d-flex justify-center mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="Size.Large" />
+                <MudText Typo="Typo.h4" Class="ml-2">Conecta+</MudText>
+            </div>
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-4">Portal do Cliente</MudText>
+
+            <MudForm @onsubmit="HandleLogin">
+                <MudTextField @bind-Value="Cpf"
+                              Label="CPF"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="O CPF é obrigatório!" />
+
+                <MudTextField @bind-Value="Password"
+                              Label="Senha"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Password"
+                              Required="true"
+                              RequiredError="A senha é obrigatória!"
+                              Class="mt-4" />
+
+                <div class="d-flex justify-end my-4">
+                    <MudLink Href="#">Esqueceu a senha?</MudLink>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+                }
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           FullWidth="true"
+                           Disabled="_isProcessing">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    }
+                    else
+                    {
+                        @("Entrar")
+                    }
+                </MudButton>
+            </MudForm>
+        </MudPaper>
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string Cpf { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+
+    private bool _isProcessing = false;
+    private string? _errorMessage = null;
+
+    private async Task HandleLogin()
+    {
+        _isProcessing = true;
+        _errorMessage = null;
+
+        // --- LÓGICA DE LOGIN (SIMULADA) ---
+        // Aqui, no futuro, chamaremos o AuthService para validar o usuário na API.
+        await Task.Delay(1500); // Simula uma chamada de rede
+
+        // Simulação de sucesso
+        NavigationManager.NavigateTo("/"); // Redireciona para a página principal
+
+        _isProcessing = false;
+    }
+}
