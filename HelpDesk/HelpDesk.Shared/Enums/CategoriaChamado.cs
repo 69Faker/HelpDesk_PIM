@@ -3,11 +3,11 @@ namespace HelpDesk.Shared.Enums
 {
     public enum CategoriaChamado
     {
-        ProblemasDeRede,
-        DataDeInstalacao,
-        TrocaDeEquipamentos,
-        Pagamento,
-        CancelamentoDeContrato,
-        Outros
+        PROBLEMAS_DE_REDE,
+        DATA_DE_INSTALACAO,
+        TROCA_DE_EQUIPAMENTOS,
+        PAGAMENTO,
+        CANCELAMENTO_DE_CONTRATO,
+        OUTROS
     }
 }

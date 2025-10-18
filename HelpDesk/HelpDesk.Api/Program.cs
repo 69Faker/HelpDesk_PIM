@@ -1,24 +1,43 @@
+using HelpDesk.Api.Data; // Adicionado
 using HelpDesk.Api.Data.Repositories;
 using HelpDesk.Api.Services;
+using Microsoft.EntityFrameworkCore; // Adicionado
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// --- INÍCIO DAS CONFIGURAÇÕES DE SERVIÇO ---
 
+// 1. Adiciona o DbContext para o Entity Framework
+builder.Services.AddDbContext<HelpDeskDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+// Add services to the container.
 builder.Services.AddControllers();
 
-// ***** INÍCIO DO BLOCO ADICIONADO *****
-// Registro dos nossos repositórios e serviços para injeção de dependência.
-// Para cada "interface", estamos dizendo qual "classe concreta" deve ser usada.
-builder.Services.AddSingleton<IChamadoRepository, FakeChamadoRepository>();
-builder.Services.AddSingleton<IClienteRepository, FakeClienteRepository>();
-builder.Services.AddSingleton<IClienteService, ClienteService>();
-builder.Services.AddSingleton<IChamadoService, ChamadoService>();
-// ***** FIM DO BLOCO ADICIONADO *****
+// 2. Registro dos nossos repositórios e serviços para injeção de dependência.
+//    Mudamos de 'Singleton' para 'Scoped' para funcionar corretamente com o DbContext.
+//    'Scoped' significa que uma nova instância é criada para cada requisição HTTP.
+
+// Comente ou remova os repositórios "Fake"
+// builder.Services.AddSingleton<IChamadoRepository, FakeChamadoRepository>();
+// builder.Services.AddSingleton<IClienteRepository, FakeClienteRepository>();
+
+// Adicione as implementações "Reais"
+builder.Services.AddScoped<IChamadoRepository, ChamadoRepository>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
+// Serviços (também devem ser 'Scoped' ou 'Transient' se dependerem de repositórios 'Scoped')
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IChamadoService, ChamadoService>();
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+// ***** FIM DO BLOCO ADICIONADO/MODIFICADO *****
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// --- FIM DAS CONFIGURAÇÕES DE SERVIÇO ---
 
 var app = builder.Build();
 
