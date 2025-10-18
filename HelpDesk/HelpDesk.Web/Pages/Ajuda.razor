@@ -1,0 +1,55 @@
+﻿@rendermode RenderMode.InteractiveServer
+@page "/ajuda"
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+
+    <MudText Typo="Typo.h5" GutterBottom="true">Problemas de Internet? Tente isso primeiro.</MudText>
+
+    <MudCard Elevation="2">
+        <MudCardContent>
+
+            <MudExpansionPanels MultiExpansion="true">
+
+                <MudExpansionPanel Text="1. Minha internet está muito lenta.">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.body2"><strong>- Reinicie seu modem/roteador:</strong> Desligue o equipamento da tomada, aguarde 30 segundos e ligue-o novamente. Este é o passo mais comum e eficaz.</MudText>
+                        <MudText Typo="Typo.body2"><strong>- Verifique os cabos:</strong> Certifique-se de que todos os cabos estão bem conectados tanto no equipamento quanto no seu computador/dispositivo.</MudText>
+                        <MudText Typo="Typo.body2"><strong>- Teste em outro dispositivo:</strong> Se possível, veja se a lentidão ocorre em outros celulares ou computadores na mesma rede para descartar um problema no seu aparelho.</MudText>
+                    </MudStack>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="2. Estou sem conexão com a internet.">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.body2"><strong>- Verifique as luzes do modem:</strong> Observe as luzes no seu equipamento. Geralmente, uma luz verde ou azul fixa indica conexão. Se uma luz estiver vermelha ou piscando, reinicie o modem como no passo anterior.</MudText>
+                        <MudText Typo="Typo.body2"><strong>- Conexão via cabo:</strong> Tente conectar um computador diretamente ao modem com um cabo de rede. Se funcionar, o problema pode ser o seu Wi-Fi.</MudText>
+                    </MudStack>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="3. Meu Wi-Fi não funciona, mas a internet a cabo sim.">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.body2"><strong>- Reinicie o roteador:</strong> Este passo também é válido aqui.</MudText>
+                        <MudText Typo="Typo.body2"><strong>- Aproxime-se do roteador:</strong> Paredes e distância podem enfraquecer o sinal. Teste a conexão mais perto do equipamento.</MudText>
+                        <MudText Typo="Typo.body2"><strong>- Esqueça a rede e conecte novamente:</strong> No seu dispositivo (celular/computador), vá nas configurações de Wi-Fi, mande "esquecer" a sua rede e insira a senha para se conectar de novo.</MudText>
+                    </MudStack>
+                </MudExpansionPanel>
+
+            </MudExpansionPanels>
+
+            <div class="d-flex flex-column align-center mt-8">
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Nenhuma das soluções acima funcionou?
+                </MudText>
+
+                <MudButton Href="/chamado/novo"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.HeadsetMic"
+                           Size="Size.Large">
+                    Abrir um Chamado
+                </MudButton>
+            </div>
+
+        </MudCardContent>
+    </MudCard>
+
+</MudContainer>

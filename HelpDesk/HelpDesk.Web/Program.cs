@@ -1,30 +1,31 @@
-using HelpDesk.Web;
-using HelpDesk.Web.Components.Layout; // Adicionamos para o Blazor saber onde estao os Layouts
+// Local: Program.cs (Seu arquivo ATUALIZADO)
+
+using HelpDesk.Web.Components.Layout;
 using MudBlazor.Services;
+using HelpDesk.Web.Services; // <--- ADICIONE ESTE 'using'
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. Adiciona os serviços essenciais ao contêiner. ---
 
-// Habilita o Blazor Server e seus componentes
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Adiciona os serviços do MudBlazor (para os componentes de UI funcionarem)
 builder.Services.AddMudServices();
 
-// Configura o HttpClient para se comunicar com a nossa API
+// Configura o HttpClient NOMEADO para se comunicar com a nossa API
 builder.Services.AddHttpClient("HelpDeskApi", client =>
 {
-    // IMPORTANTE: Esta deve ser a URL base onde sua API (HelpDesk.Api) está rodando.
-    // Verifique a porta no arquivo launchSettings.json do projeto da API.
+    // IMPORTANTE: Esta é a SUA URL. (Porta 7001)
+    // Está correto e alinhado com o que você já tinha.
     client.BaseAddress = new Uri("https://localhost:7001");
 });
 
-
-// TODO: Futuramente, registraremos nossos serviços de aplicação aqui
-// builder.Services.AddScoped<IAuthService, AuthService>();
-// builder.Services.AddScoped<IChamadoService, ChamadoService>();
+// --- ESTA É A LINHA QUE FALTAVA ---
+// Registra o ApiClient para que ele possa ser injetado nas páginas.
+// Ele usará o HttpClientFactory para obter o "HelpDeskApi" que você 
+// configurou acima.
+builder.Services.AddScoped<IApiClient, ApiClient>();
 
 
 var app = builder.Build();
@@ -38,10 +39,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // Permite o uso de arquivos estáticos (CSS, JS, imagens)
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-// Mapeia o componente raiz <App> e define o modo de renderização
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
