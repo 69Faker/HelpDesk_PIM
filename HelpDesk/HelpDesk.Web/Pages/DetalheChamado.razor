@@ -1,0 +1,179 @@
+﻿@page "/chamado/detalhe/{IdChamado:int}"
+@using HelpDesk.Shared.Dtos
+@using HelpDesk.Shared.Enums
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@if (loading)
+{
+    <MudText>Carregando detalhes do chamado...</MudText>
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+}
+else if (chamado == null)
+{
+    <MudText Typo="Typo.h5" Color="Color.Error">Chamado não encontrado</MudText>
+    <MudButton Href="/historico-chamados" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Voltar para o Histórico</MudButton>
+}
+else
+{
+    <MudButton Href="/historico-chamados"
+               StartIcon="@Icons.Material.Filled.ArrowBack"
+               Variant="Variant.Text"
+               Color="Color.Primary"
+               Class="mb-4">
+        Voltar para o Histórico
+    </MudButton>
+
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h5">@chamado.Titulo</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Inherit" Class="mt-1">Aberto em: @chamado.DataAbertura.ToString("dd/MM/yyyy 'às' HH:mm")</MudText>
+            </MudStack>
+
+            <MudChip T="string"
+                     Color="@GetStatusColor(chamado.Status)"
+                     Size="Size.Small"
+                     Variant="Variant.Text"
+                     Text="@GetStatusText(chamado.Status)"
+                     Class="mt-2" />
+
+            <MudText Typo="Typo.h6" Class="mt-6 mb-2">Descrição Inicial:</MudText>
+            <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-surface);">
+                <MudText Typo="Typo.body1">@chamado.Descricao</MudText>
+            </MudPaper>
+        </MudCardContent>
+
+        <MudDivider />
+
+        <MudCardContent Style="max-height: 400px; overflow-y: auto; background-color: var(--mud-palette-background-grey);">
+            <MudStack Spacing="4">
+                @foreach (var msg in chamado.Mensagens)
+                {
+                    @if (msg.Autor == AutorMensagem.CLIENTE)
+                    {
+                        <MudStack AlignItems="AlignItems.End">
+                            <MudPaper Class="pa-3" Style="background-color: var(--mud-palette-primary); max-width: 80%;">
+                                <MudText Typo="Typo.body1">@msg.Texto</MudText>
+                                <MudText Typo="Typo.caption" Align="Align.Right" Class="mt-1">@msg.DataEnvio.ToString("HH:mm")</MudText>
+                            </MudPaper>
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudStack AlignItems="AlignItems.Start">
+                            <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-surface); max-width: 80%;">
+                                <MudText Typo="Typo.body1">@msg.Texto</MudText>
+                                <MudText Typo="Typo.caption" Align="Align.Right" Class="mt-1">@msg.DataEnvio.ToString("HH:mm")</MudText>
+                            </MudPaper>
+                        </MudStack>
+                    }
+                }
+            </MudStack>
+        </MudCardContent>
+
+        <MudPaper Elevation="2" Class="pa-4 d-flex">
+            <MudTextField @bind-Value="novaMensagemTexto"
+                          Placeholder="Digite sua resposta aqui..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          HideDetails="true"
+                          Class="flex-grow-1"
+                          OnKeyUp="HandleKeyUp" />
+            <MudIconButton Icon="@Icons.Material.Filled.Send"
+                           Color="Color.Primary"
+                           OnClick="EnviarMensagem"
+                           Disabled="string.IsNullOrWhiteSpace(novaMensagemTexto)"
+                           Class="ml-2" />
+        </MudPaper>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public int IdChamado { get; set; }
+
+    private ChamadoDetailDto? chamado;
+    private bool loading = true;
+    private string novaMensagemTexto = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<ChamadoDetailDto>($"chamados/{IdChamado}");
+            chamado = response;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao buscar chamado: {ex.Message}");
+            Snackbar.Add("Erro ao carregar chamado.", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task EnviarMensagem()
+    {
+        if (string.IsNullOrWhiteSpace(novaMensagemTexto) || chamado == null) return;
+
+        // CORREÇÃO 4 AQUI: Usando o DTO correto
+        var dto = new MensagemCreateRequestDto
+        {
+            Texto = novaMensagemTexto,
+            Autor = AutorMensagem.CLIENTE // O autor é o cliente
+        };
+
+        // 2. Enviar para a API (Endpoint de exemplo)
+        // O ID do chamado vai na ROTA, não no DTO.
+        // **** NOTA: VOCÊ PRECISA CRIAR ESTE ENDPOINT NA API: POST /chamados/{id}/mensagem ****
+
+        // var response = await Http.PostAsJsonAsync($"chamados/{chamado.IdChamado}/mensagem", dto);
+
+        // 3. Se funcionou, atualizar a UI... (código de simulação abaixo)
+
+        // ----- INÍCIO DO CÓDIGO DE TESTE (remover depois) -----
+        Snackbar.Add("Simulando envio de mensagem...", Severity.Info);
+        chamado.Mensagens.Add(new MensagemDto
+        {
+            Texto = dto.Texto,
+            Autor = dto.Autor,
+            DataEnvio = DateTime.Now
+        });
+        novaMensagemTexto = string.Empty;
+        StateHasChanged();
+        // ----- FIM DO CÓDIGO DE TESTE -----
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await EnviarMensagem();
+        }
+    }
+
+    // Funções de ajuda (copiadas do Histórico)
+    private Color GetStatusColor(StatusChamado status) => status switch
+    {
+        StatusChamado.ABERTO => Color.Primary,
+        StatusChamado.EM_ATENDIMENTO => Color.Warning,
+        StatusChamado.EM_ESPERA => Color.Default,
+        StatusChamado.FINALIZADO => Color.Success, // CORREÇÃO 2 AQUI (era Z)
+        StatusChamado.CANCELADO => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetStatusText(StatusChamado status) => status switch
+    {
+        StatusChamado.ABERTO => "Aberto",
+        StatusChamado.EM_ATENDIMENTO => "Em Atendimento",
+        StatusChamado.EM_ESPERA => "Em Espera",
+        StatusChamado.FINALIZADO => "Finalizado", // CORREÇÃO 3 AQUI (era Z)
+        StatusChamado.CANCELADO => "Cancelado",
+        _ => status.ToString()
+    };
+}

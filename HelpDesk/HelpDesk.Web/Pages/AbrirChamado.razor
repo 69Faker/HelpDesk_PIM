@@ -1,0 +1,149 @@
+﻿@page "/chamado/novo"
+@using HelpDesk.Shared.Dtos
+@using HelpDesk.Shared.Enums
+@using System @* <-- Adicione este 'using' se estiver faltando *@
+
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" GutterBottom="true">Abertura de Chamado</MudText>
+<MudText Typo="Typo.subtitle1" Class="mb-4">Descreva seu problema e nossa equipe irá analisar.</MudText>
+
+@* --- MUDANÇA 1: Removemos o 'OnValidSubmit' --- *@
+<MudForm @ref="form" @bind-IsValid="success" Model="modelo">
+    <MudCard Elevation="2">
+        <MudCardContent>
+
+            <MudSelect T="CategoriaChamado"
+                       @bind-Value="modelo.Categoria"
+                       Label="Categoria"
+                       Variant="Variant.Outlined"
+                       For="@(() => modelo.Categoria)"
+                       Required="true"
+                       RequiredError="Selecione uma categoria.">
+
+                <MudSelectItem Value="CategoriaChamado.PROBLEMAS_DE_REDE">Problemas de Rede</MudSelectItem>
+                <MudSelectItem Value="CategoriaChamado.DATA_DE_INSTALACAO">Data de Instalação</MudSelectItem>
+                <MudSelectItem Value="CategoriaChamado.TROCA_DE_EQUIPAMENTOS">Troca de Equipamentos</MudSelectItem>
+                <MudSelectItem Value="CategoriaChamado.PAGAMENTO">Pagamento</MudSelectItem>
+                <MudSelectItem Value="CategoriaChamado.CANCELAMENTO_DE_CONTRATO">Cancelamento de Contrato</MudSelectItem>
+                <MudSelectItem Value="CategoriaChamado.OUTROS">Outros</MudSelectItem>
+
+            </MudSelect>
+
+            <MudTextField Label="Assunto"
+                          @bind-Value="modelo.Titulo"
+                          Variant="Variant.Outlined"
+                          Class="mt-4"
+                          For="@(() => modelo.Titulo)"
+                          Required="true"
+                          RequiredError="O assunto é obrigatório."
+                          Placeholder="Ex: Internet lenta após as 18h" />
+
+            <MudTextField Label="Descrição"
+                          @bind-Value="modelo.Descricao"
+                          Variant="Variant.Outlined"
+                          Lines="6"
+                          Class="mt-4"
+                          For="@(() => modelo.Descricao)"
+                          Required="true"
+                          RequiredError="Descreva seu problema."
+                          Placeholder="Descreva seu problema com o máximo de detalhes possível..." />
+
+        </MudCardContent>
+        <MudCardActions Class="pa-4 justify-end">
+
+            @* --- MUDANÇA 2: Trocamos 'ButtonType.Submit' por '@onclick' --- *@
+            <MudButton @onclick="HandleSubmit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@(loading)"
+                       StartIcon="@Icons.Material.Filled.Send">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <span classs="ms-2">Enviando...</span>
+                }
+                else
+                {
+                    <span>Enviar Chamado</span>
+                }
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudForm>
+
+@code {
+    private MudForm form = null!;
+    private bool success; // Isso ainda é útil, pois é ligado ao @bind-IsValid
+    private bool loading = false;
+    private ChamadoCreateRequestDto modelo = new();
+
+    // --- MUDANÇA 3: Adicionamos os parâmetros da URL (Query String) ---
+    [SupplyParameterFromQuery(Name = "categoria")]
+    public string? CategoriaQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "titulo")]
+    public string? TituloQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "descricao")]
+    public string? DescricaoQuery { get; set; }
+
+    // --- MUDANÇA 4: Adicionamos OnInitialized para ler os parâmetros da URL ---
+    protected override void OnInitialized()
+    {
+        // NOTA: O ClienteId '1' é para teste. Substitua pelo ID logado.
+        modelo.ClienteId = 1;
+
+        // Preenche o modelo com os dados vindos da URL (do chatbot)
+        if (!string.IsNullOrEmpty(CategoriaQuery) && Enum.TryParse<CategoriaChamado>(CategoriaQuery, out var cat))
+        {
+            modelo.Categoria = cat;
+        }
+        if (!string.IsNullOrEmpty(TituloQuery))
+        {
+            modelo.Titulo = TituloQuery;
+        }
+        if (!string.IsNullOrEmpty(DescricaoQuery))
+        {
+            modelo.Descricao = DescricaoQuery;
+        }
+    }
+
+    // --- MUDANÇA 5: Adicionamos a validação manual ao HandleSubmit ---
+    private async Task HandleSubmit()
+    {
+        // Validamos o formulário manualmente
+        await form.Validate();
+        if (!success) // Se a validação falhar (campos obrigatórios), 'success' será 'false'
+        {
+            return; // Para a execução
+        }
+
+        loading = true;
+
+        // O ClienteId já foi definido no OnInitialized()
+
+        try
+        {
+            // A lógica de chamar o ApiClient (que agora 'joga' o erro)
+            bool sucesso = await ApiClient.CriarChamadoAsync(modelo);
+
+            if (sucesso)
+            {
+                Snackbar.Add("Chamado aberto com sucesso!", Severity.Success);
+                modelo = new ChamadoCreateRequestDto { ClienteId = modelo.ClienteId }; // Limpa o form
+                NavigationManager.NavigateTo("/chamados"); // Redireciona para o histórico
+            }
+        }
+        catch (Exception ex)
+        {
+            // Este 'catch' agora vai funcionar e mostrar o erro real da API
+            Snackbar.Add($"Erro ao abrir chamado: {ex.Message}", Severity.Error);
+        }
+
+        loading = false;
+        StateHasChanged(); // Garante que o botão/loading seja atualizado
+    }
+}

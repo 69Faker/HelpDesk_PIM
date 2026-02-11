@@ -10,5 +10,6 @@ namespace HelpDesk.Shared.Dtos
         public DateTime DataAbertura { get; set; }
         public StatusChamado Status { get; set; }
         public int ClienteId { get; set; }
+        public string Descricao { get; set; } = string.Empty;
     }
 }

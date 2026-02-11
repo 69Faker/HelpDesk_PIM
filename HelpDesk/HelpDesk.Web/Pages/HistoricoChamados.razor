@@ -1,0 +1,118 @@
+﻿@page "/chamados"
+@using HelpDesk.Shared.Dtos
+@using HelpDesk.Shared.Enums
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" GutterBottom="true">Histórico de Chamados</MudText>
+
+@if (loading)
+{
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudText>Carregando seu histórico...</MudText>
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+        </MudCardContent>
+    </MudCard>
+}
+else if (chamados.Count == 0)
+{
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudText Typo="Typo.subtitle1" Class="my-4">Você ainda não abriu nenhum chamado.</MudText>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudExpansionPanels MultiExpansion="false">
+        @foreach (var chamado in chamados)
+        {
+            <MudExpansionPanel>
+                @* 1. O TÍTULO (O que fica visível) *@
+                <TitleContent>
+                    <MudGrid>
+                        <MudItem xs="12" sm="5">
+                            <MudText><strong>#@chamado.IdChamado</strong> - @chamado.Titulo</MudText>
+                        </MudItem>
+                        <MudItem xs="8" sm="4">
+                            <MudText Class="text-truncate">@chamado.DataAbertura.ToString("dd/MM/yyyy")</MudText>
+                        </MudItem>
+                        <MudItem xs="4" sm="3" Class="d-flex justify-end">
+                            <MudChip T="string"
+                                     Color="@GetStatusColor(chamado.Status)"
+                                     Size="Size.Small"
+                                     Variant="Variant.Text"
+                                     Text="@GetStatusText(chamado.Status)" />
+                        </MudItem>
+                    </MudGrid>
+                </TitleContent>
+
+                @* 2. O CONTEÚDO (O que expande) *@
+                <ChildContent>
+                    <MudText Typo="Typo.body2" Class="pa-2">@chamado.Descricao</MudText>
+
+                    @* --- BOTÃO REMOVIDO DAQUI --- *@
+
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+
+
+@code {
+    private List<ChamadoDto> chamados = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // O ClienteId '1' é para teste. Substitua pelo ID do usuário logado!
+            var response = await ApiClient.GetChamadosPorClienteAsync(1);
+
+            if (response != null)
+            {
+                chamados = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao buscar chamados: {ex.Message}", Severity.Error, config => { config.CloseAfterNavigation = true; });
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    // Os métodos 'Helper' continuam 100% iguais
+
+    private Color GetStatusColor(StatusChamado status)
+    {
+        return status switch
+        {
+            StatusChamado.ABERTO => Color.Primary,
+            StatusChamado.EM_ATENDIMENTO => Color.Warning,
+            StatusChamado.EM_ESPERA => Color.Default,
+            StatusChamado.FINALIZADO => Color.Success,
+            StatusChamado.CANCELADO => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private string GetStatusText(StatusChamado status)
+    {
+        return status switch
+        {
+            StatusChamado.ABERTO => "Aberto",
+            StatusChamado.EM_ATENDIMENTO => "Em Atendimento",
+            StatusChamado.EM_ESPERA => "Em Espera",
+            StatusChamado.FINALIZADO => "Finalizado",
+            StatusChamado.CANCELADO => "Cancelado",
+            _ => status.ToString()
+        };
+    }
+}

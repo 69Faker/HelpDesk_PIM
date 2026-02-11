@@ -3,19 +3,26 @@
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
+<MudPopoverProvider />
 
 <MudLayout>
     <MudAppBar Fixed="false" Elevation="1">
-        <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="Size.Large" Class="mr-3" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())" />
+
+        <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="Size.Large" Class="ml-3 mr-3" />
         <MudText Typo="Typo.h5">@PageTitle</MudText>
         <MudSpacer />
         <MudText Class="mr-3">Olá, Cliente!</MudText>
         <MudAvatar Color="Color.Secondary">C</MudAvatar>
     </MudAppBar>
 
-    <MudDrawer Open="true"
+    <MudDrawer @bind-Open="_drawerOpen"
+               ClipMode="DrawerClipMode.Always"
                Variant="DrawerVariant.Mini"
-               MiniWidth="56px"
+               MiniWidth="60px"
                Elevation="2">
         <NavMenu />
     </MudDrawer>
@@ -27,10 +34,19 @@
     </MudMainContent>
 </MudLayout>
 
+<Chatbot />
+
 @code {
+    // CORREÇÃO: Começa como 'false' para mostrar apenas os ícones (igual ao protótipo)
+    private bool _drawerOpen = false;
     private bool _isDarkMode = true;
 
     public string PageTitle { get; set; } = "Dashboard";
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
 
     private MudTheme _theme = new MudTheme()
     {

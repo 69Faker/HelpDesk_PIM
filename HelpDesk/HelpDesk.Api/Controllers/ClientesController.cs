@@ -73,6 +73,24 @@ namespace HelpDesk.Api.Controllers
             }
         }
 
+        [HttpPost("redefinir-senha")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] ClienteRedefinirSenhaRequestDto requestDto)
+        {
+            try
+            {
+                // 1. Chama o serviço com a nova lógica
+                await _clienteService.RedefinirSenhaAsync(requestDto.Cpf, requestDto.Email, requestDto.NovaSenha);
+
+                // 2. Retorna sucesso
+                return Ok(new { message = "Senha redefinida com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                // 3. Pega erros (ex: "CPF ou E-mail inválidos.") e os retorna como BadRequest
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // Aqui, no futuro, podemos adicionar outros endpoints como:
         // - POST /api/clientes (para registrar um novo cliente)
         // - PUT /api/clientes/{id}/alterarsenha (para alterar a senha)

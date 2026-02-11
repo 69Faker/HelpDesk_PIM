@@ -36,8 +36,10 @@ namespace HelpDesk.Api.Controllers
 					Titulo = c.Titulo,
 					DataAbertura = c.DataAbertura,
 					Status = c.Status,
-					ClienteId = c.ClienteId
-				});
+					ClienteId = c.ClienteId,
+                    Descricao = c.Descricao
+
+                });
 
 				return Ok(chamadosDto);
 			}
@@ -79,17 +81,42 @@ namespace HelpDesk.Api.Controllers
 			}
 		}
 
-		// GET: api/chamados/10
-		[HttpGet("{chamadoId}")]
-		public async Task<IActionResult> GetChamadoById(int chamadoId)
-		{
-			// Este método será implementado em breve, mas é necessário para o CreatedAtAction funcionar
-			var chamado = await _chamadoService.GetChamadoByIdAsync(chamadoId);
-			if (chamado == null) return NotFound();
+        // GET: api/chamados/10
+        [HttpGet("{chamadoId}")]
+        public async Task<IActionResult> GetChamadoById(int chamadoId)
+        {
+            var chamado = await _chamadoService.GetChamadoByIdAsync(chamadoId);
+            if (chamado == null) return NotFound();
 
-			// Aqui também faremos o mapeamento para DTO
-			return Ok(chamado); // Por enquanto, retornamos o modelo
-		}
+            // --- ESTA É A CORREÇÃO ---
+            // Nós mapeamos o Modelo (Chamado) para o DTO (ChamadoDetailDto).
+            // Isso quebra o loop infinito, pois o DTO não tem a propriedade "Cliente".
+            var dto = new ChamadoDetailDto
+            {
+                // Propriedades do ChamadoDto base
+                IdChamado = chamado.IdChamado,
+                Titulo = chamado.Titulo,
+                DataAbertura = chamado.DataAbertura,
+                Status = chamado.Status,
+                ClienteId = chamado.ClienteId,
+
+                // Propriedades do ChamadoDetailDto
+                Categoria = chamado.Categoria,
+                Descricao = chamado.Descricao,
+                DataFechamento = chamado.DataFechamento,
+
+                // Mapeia a lista de Modelos 'Mensagem' para uma lista de DTOs 'MensagemDto'
+                Mensagens = chamado.Mensagens.Select(msg => new MensagemDto
+                {
+                    IdMensagem = msg.IdMensagem,
+                    Texto = msg.Texto,
+                    DataEnvio = msg.DataEnvio,
+                    Autor = msg.Autor
+                }).ToList()
+            };
+
+            return Ok(dto); // Retornamos o DTO limpo, em vez do modelo
+        }
         // POST: api/chamados/5/mensagens
         [HttpPost("{chamadoId}/mensagens")]
         public async Task<IActionResult> AdicionarMensagem(int chamadoId, [FromBody] MensagemCreateRequestDto requestDto)

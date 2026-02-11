@@ -1,13 +1,46 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Title="Dashboard" Class="my-2" />
-    <MudNavLink Href="/chamado/novo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Headset" Title="Fale Conosco" Class="my-2" />
-    <MudNavLink Href="/chamados" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History" Title="Histórico de Chamados" Class="my-2" />
-    <MudNavLink Href="/contrato" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Article" Title="Contrato" Class="my-2" />
-    <MudNavLink Href="/pagamento" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CreditCard" Title="Forma de Pagamento" Class="my-2" />
-    <MudNavLink Href="/ajuda" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Wifi" Title="Problemas de Internet" Class="my-2" />
+﻿@inject NavigationManager NavigationManager
 
+<MudNavMenu>
+
+    <MudNavLink Href="/dash" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Class="my-2">
+        Dashboard
+    </MudNavLink>
+
+    <MudNavLink Href="/chamado/novo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Headset" Class="my-2">
+        Suporte
+    </MudNavLink>
+
+    <MudNavLink Href="/chamados" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History" Class="my-2">
+        Solicitações
+    </MudNavLink>
+
+    <MudNavLink Href="/contrato" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Article" Class="my-2">
+        Contrato
+    </MudNavLink>
+
+    <MudNavLink Href="/pagamento" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CreditCard" Class="my-2">
+        Pagamento
+    </MudNavLink>
+
+    <MudNavLink Href="/ajuda" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Wifi" Class="my-2">
+        Ajuda
+    </MudNavLink>
 
     <div class="mt-auto mb-4">
-        <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.Logout" Title="Sair" IconColor="Color.Error" Class="my-2" />
+        <MudNavLink OnClick="RealizarLogout"
+                    Icon="@Icons.Material.Filled.Logout"
+                    IconColor="Color.Error"
+                    Class="my-2">
+            Sair
+        </MudNavLink>
     </div>
+
 </MudNavMenu>
+
+@code {
+    private void RealizarLogout()
+    {
+        // Redireciona para o login e força o recarregamento da página
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+}

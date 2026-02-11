@@ -1,0 +1,20 @@
+﻿@page "/test"
+@rendermode InteractiveServer
+@inject ILogger<Test> Logger
+
+<PageTitle>Página de Teste</PageTitle>
+
+<h3>Página de Teste Interativo</h3>
+<p>Contador: @count</p>
+
+<button @onclick="IncrementCount">Clique-me</button>
+
+@code {
+    private int count = 0;
+
+    private void IncrementCount()
+    {
+        count++;
+        Logger.LogInformation("--- CLICOU! Contador agora é {count} ---", count);
+    }
+}

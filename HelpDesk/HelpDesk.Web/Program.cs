@@ -1,8 +1,10 @@
-// Local: Program.cs (Seu arquivo ATUALIZADO)
+// Local: HelpDesk.Web/Program.cs
 
+using HelpDesk.Web;
+using HelpDesk.Web.Components;
 using HelpDesk.Web.Components.Layout;
 using MudBlazor.Services;
-using HelpDesk.Web.Services; // <--- ADICIONE ESTE 'using'
+using HelpDesk.Web.Services; // 'using' para o IApiClient
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,18 +15,15 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices();
 
-// Configura o HttpClient NOMEADO para se comunicar com a nossa API
+// (CORREÇÃO) Configura o HttpClient NOMEADO para se comunicar com a API
 builder.Services.AddHttpClient("HelpDeskApi", client =>
 {
-    // IMPORTANTE: Esta é a SUA URL. (Porta 7001)
-    // Está correto e alinhado com o que você já tinha.
-    client.BaseAddress = new Uri("https://localhost:7001");
+    // A porta foi corrigida de 7113 para 7133,
+    // conforme o seu arquivo launchSettings.json da API.
+    client.BaseAddress = new Uri("https://localhost:7133");
 });
 
-// --- ESTA É A LINHA QUE FALTAVA ---
 // Registra o ApiClient para que ele possa ser injetado nas páginas.
-// Ele usará o HttpClientFactory para obter o "HelpDeskApi" que você 
-// configurou acima.
 builder.Services.AddScoped<IApiClient, ApiClient>();
 
 

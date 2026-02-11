@@ -1,66 +1,73 @@
 ﻿@page "/login"
 @layout EmptyLayout
+@rendermode InteractiveServer
+
 @inject NavigationManager NavigationManager
+@inject IApiClient ApiClient
+@inject ILogger<Login> Logger
 
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
 
-<MudGrid Justify="Justify.Center" Class="h-screen">
-    <MudItem xs="11" sm="8" md="4">
+    <MudPaper Class="pa-8" Elevation="3">
+        <div class="d-flex justify-center mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="Size.Large" />
+            <MudText Typo="Typo.h4" Class="ml-2">Conecta+</MudText>
+        </div>
+        <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-4">Portal do Cliente</MudText>
 
-        <MudPaper Class="pa-8" Elevation="3">
-            <div class="d-flex justify-center mb-4">
-                <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="Size.Large" />
-                <MudText Typo="Typo.h4" Class="ml-2">Conecta+</MudText>
+        <MudForm Model="@_loginModel">
+
+            <MudTextField @bind-Value="_loginModel.Cpf"
+                          For="@(() => _loginModel.Cpf)"
+                          Label="CPF"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="O CPF é obrigatório!" />
+
+            <MudTextField @bind-Value="_loginModel.Senha"
+                          For="@(() => _loginModel.Senha)"
+                          Label="Senha"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          RequiredError="A senha é obrigatória!"
+                          Class="mt-4" />
+
+            <div class="d-flex justify-end my-4">
+                <MudLink Href="/esqueci-senha">Esqueceu a senha?</MudLink>
             </div>
-            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-4">Portal do Cliente</MudText>
 
-            <MudForm @onsubmit="HandleLogin">
-                <MudTextField @bind-Value="Cpf"
-                              Label="CPF"
-                              Variant="Variant.Outlined"
-                              Required="true"
-                              RequiredError="O CPF é obrigatório!" />
+            <MudAlert Severity="Severity.Error"
+                      Class="mb-4"
+                      Style="@(string.IsNullOrEmpty(_errorMessage) ? "display:none;" : "")">
+                @_errorMessage
+            </MudAlert>
 
-                <MudTextField @bind-Value="Password"
-                              Label="Senha"
-                              Variant="Variant.Outlined"
-                              InputType="InputType.Password"
-                              Required="true"
-                              RequiredError="A senha é obrigatória!"
-                              Class="mt-4" />
-
-                <div class="d-flex justify-end my-4">
-                    <MudLink Href="#">Esqueceu a senha?</MudLink>
-                </div>
-
-                @if (!string.IsNullOrEmpty(_errorMessage))
+            <MudButton OnClick="async () => await HandleLogin()"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       FullWidth="true"
+                       Disabled="_isProcessing">
+                @if (_isProcessing)
                 {
-                    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
                 }
+                else
+                {
+                    @("Entrar")
+                }
+            </MudButton>
+        </MudForm>
+    </MudPaper>
 
-                <MudButton ButtonType="ButtonType.Submit"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Size="Size.Large"
-                           FullWidth="true"
-                           Disabled="_isProcessing">
-                    @if (_isProcessing)
-                    {
-                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                    }
-                    else
-                    {
-                        @("Entrar")
-                    }
-                </MudButton>
-            </MudForm>
-        </MudPaper>
+    <MudText Align="Align.Center" Class="mt-4" Color="Color.Secondary">
+    </MudText>
 
-    </MudItem>
-</MudGrid>
+</MudContainer>
 
 @code {
-    private string Cpf { get; set; } = string.Empty;
-    private string Password { get; set; } = string.Empty;
+    private ClienteLoginRequestDto _loginModel = new ClienteLoginRequestDto();
 
     private bool _isProcessing = false;
     private string? _errorMessage = null;
@@ -69,14 +76,38 @@
     {
         _isProcessing = true;
         _errorMessage = null;
+        Logger.LogInformation("--- HandleLogin (OnClick) INICIADO ---");
 
-        // --- LÓGICA DE LOGIN (SIMULADA) ---
-        // Aqui, no futuro, chamaremos o AuthService para validar o usuário na API.
-        await Task.Delay(1500); // Simula uma chamada de rede
+        try
+        {
+            Logger.LogInformation("1. CPF: {Cpf}", _loginModel.Cpf);
+            Logger.LogInformation("2. Chamando ApiClient.LoginAsync...");
 
-        // Simulação de sucesso
-        NavigationManager.NavigateTo("/"); // Redireciona para a página principal
+            var loginResponse = await ApiClient.LoginAsync(_loginModel);
 
-        _isProcessing = false;
+            Logger.LogInformation("3. Chamada à API finalizada.");
+
+            if (loginResponse != null)
+            {
+                Logger.LogInformation("4. SUCESSO! Resposta recebida. Redirecionando...");
+                NavigationManager.NavigateTo("/dash");
+            }
+            else
+            {
+                Logger.LogWarning("4. FALHA! API retornou nulo (CPF/Senha inválidos?).");
+                _errorMessage = "CPF ou Senha inválidos. Tente novamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "5. EXCEÇÃO! Erro ao conectar com o servidor.");
+            _errorMessage = "Erro ao conectar com o servidor. Tente novamente mais tarde.";
+        }
+        finally
+        {
+            _isProcessing = false;
+            Logger.LogInformation("--- HandleLogin FINALIZADO ---");
+            StateHasChanged();
+        }
     }
 }

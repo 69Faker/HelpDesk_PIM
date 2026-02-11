@@ -1,0 +1,221 @@
+﻿@using HelpDesk.Shared.Dtos
+@using HelpDesk.Shared.Enums
+@using System.Net // Necessário para codificar a URL
+
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+@* --- 1. SEU NOVO CSS (COPIADO) --- *@
+<style>
+    .chatbot-trigger {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: transform 0.2s;
+        overflow: hidden;
+        border: 2px solid var(--mud-palette-primary);
+    }
+
+        .chatbot-trigger:hover {
+            transform: scale(1.1);
+        }
+
+        .chatbot-trigger img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .chatbot-window {
+        position: fixed;
+        bottom: 7rem;
+        right: 2rem;
+        width: 350px;
+        height: 500px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        background-color: var(--mud-palette-surface);
+    }
+</style>
+
+@* --- 2. SEU NOVO HTML (COPIADO E ADAPTADO) --- *@
+<div class="chatbot-trigger" @onclick="ToggleChat">
+    <img src="/img/galaxya.png" alt="Chatbot" />
+</div>
+
+@if (_isOpen)
+{
+    <MudPaper Class="chatbot-window" Elevation="8">
+
+        <MudAppBar Dense="true" Color="Color.Primary" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.SmartToy" Class="mr-2" />
+            <MudText Typo="Typo.subtitle1">Assistente Virtual</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="ToggleChat" />
+        </MudAppBar>
+
+        @* ADAPTAÇÃO: Adicionei um 'id' aqui para a função de rolar para baixo funcionar *@
+        <div id="chat-history-area" class="d-flex flex-column flex-grow-1 pa-4" style="overflow-y: auto; background-color: var(--mud-palette-background-grey);">
+
+            @* ADAPTAÇÃO: Mudei 'mensagensChat' para '_messages' para bater com a nossa lógica *@
+            @foreach (var msg in _messages)
+            {
+                <div class="d-flex flex-column @(msg.IsUser ? "align-end" : "align-start") mb-3">
+                    <MudPaper Class="pa-3"
+                              Style="@(msg.IsUser ? "background-color: var(--mud-palette-primary); color: white; max-width: 80%;" : "background-color: var(--mud-palette-surface); max-width: 80%;")">
+                        @* ADAPTAÇÃO: Mudei 'msg.Texto' para 'msg.Text' *@
+                        <MudText Typo="Typo.body2">@msg.Text</MudText>
+                    </MudPaper>
+                </div>
+            }
+
+            @* ADAPTAÇÃO: Mudei '_isTyping' para '_isProcessing' *@
+            @if (_isProcessing)
+            {
+                <div class="d-flex align-start mb-3">
+                    <MudPaper Class="pa-2" Style="background-color: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.caption">Digitando...</MudText>
+                    </MudPaper>
+                </div>
+            }
+        </div>
+
+        <MudPaper Elevation="4" Class="pa-2 d-flex align-center">
+            @* ADAPTAÇÃO: Mudei 'inputMessage' para '_currentMessage' *@
+            <MudTextField @bind-Value="_currentMessage"
+                          Placeholder="Digite sua dúvida..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="flex-grow-1 mr-2"
+                          Disabled="@_isProcessing"
+                          @onkeydown="HandleKeyDown" /> @* Mudei OnKeyUp para @onkeydown *@
+
+            <MudIconButton Icon="@Icons.Material.Filled.Send"
+                           Color="Color.Primary"
+                           OnClick="HandleSendMessageAsync" @* Mudei SendMessage para HandleSendMessageAsync *@
+                           Disabled="@(string.IsNullOrWhiteSpace(_currentMessage) || _isProcessing)" />
+        </MudPaper>
+
+    </MudPaper>
+}
+
+
+@* --- 3. NOSSO BLOCO @CODE (ADAPTADO E CORRIGIDO) --- *@
+@code {
+    // Classe interna (a mesma de antes, com sintaxe correta)
+    private class ChatMessage
+    {
+        public string Text { get; set; } = string.Empty;
+        public bool IsUser { get; set; }
+    }
+
+    // Nossas variáveis de estado (as mesmas de antes)
+    private bool _isOpen = false;
+    private bool _isProcessing = false;
+    private string _currentMessage = string.Empty; // <-- Nome adaptado
+    private List<ChatMessage> _messages = new(); // <-- Nome adaptado
+    private ChamadoCreateRequestDto? _propostaPendente = null;
+
+    // Novo método do seu HTML
+    private void ToggleChat()
+    {
+        _isOpen = !_isOpen;
+    }
+
+    // Lógica principal (a mesma de antes, que chama a API)
+    protected override void OnInitialized()
+    {
+        _messages.Add(new ChatMessage { Text = "Olá! Sou a G-Alaxya, sua assistente virtual. Como posso te ajudar hoje?", IsUser = false });
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await HandleSendMessageAsync();
+        }
+    }
+
+    private async Task HandleSendMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_currentMessage) || _isProcessing) return;
+
+        _isProcessing = true;
+        var userMessageText = _currentMessage;
+        _messages.Add(new ChatMessage { Text = userMessageText, IsUser = true });
+        _currentMessage = string.Empty;
+        await ScrollToBottom(); // Rola para baixo
+
+        var request = new ChatbotRequestDto
+        {
+            ClienteId = 1, // IMPORTANTE: Substitua '1' pelo ID do cliente logado!
+            Mensagem = userMessageText,
+            PropostaPendente = _propostaPendente
+        };
+
+        _propostaPendente = null;
+        StateHasChanged();
+
+        try
+        {
+            var response = await ApiClient.ProcessarMensagemAsync(request);
+
+            _isProcessing = false;
+            _messages.Add(new ChatMessage { Text = response.Resposta, IsUser = false });
+            await ScrollToBottom();
+
+            if (response.Tipo == TipoRespostaChatbot.ConfirmacaoChamado)
+            {
+                _propostaPendente = response.PropostaChamado;
+            }
+            else if (response.Tipo == TipoRespostaChatbot.ChamadoCriado)
+            {
+                _messages.Add(new ChatMessage { Text = "Entendido. Estou te redirecionando para a página de abertura de chamado...", IsUser = false });
+                await ScrollToBottom();
+                await Task.Delay(2000);
+
+                var propostaAnterior = request.PropostaPendente;
+                if (propostaAnterior != null)
+                {
+                    var encodedCategoria = WebUtility.UrlEncode(propostaAnterior.Categoria.ToString());
+                    var encodedTitulo = WebUtility.UrlEncode(propostaAnterior.Titulo);
+                    var encodedDescricao = WebUtility.UrlEncode(propostaAnterior.Descricao);
+                    NavigationManager.NavigateTo($"/chamado/novo?categoria={encodedCategoria}&titulo={encodedTitulo}&descricao={encodedDescricao}");
+                }
+                else
+                {
+                    NavigationManager.NavigateTo($"/chamado/novo?categoria=OUTROS&titulo={WebUtility.UrlEncode("Novo Chamado via Chatbot")}&descricao={WebUtility.UrlEncode(userMessageText)}");
+                }
+                _isOpen = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _isProcessing = false;
+            Snackbar.Add($"Erro ao conectar com o assistente: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        // Esta função garante que o chat role para baixo (usa o novo 'id' que adicionei)
+        await JSRuntime.InvokeVoidAsync("eval", "var el = document.getElementById('chat-history-area'); if(el) { el.scrollTop = el.scrollHeight; }");
+    }
+}

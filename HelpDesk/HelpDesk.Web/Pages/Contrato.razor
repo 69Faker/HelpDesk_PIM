@@ -1,0 +1,37 @@
+﻿@page "/contrato"
+@using HelpDesk.Shared.Enums
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+
+    <MudText Typo="Typo.h5" GutterBottom="true">Seu Contrato</MudText>
+
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudText Typo="Typo.h6" GutterBottom="true">Detalhes do Plano</MudText>
+
+            <MudStack Spacing="2" Class="mt-3 mb-3">
+                <MudText Typo="Typo.body1"><strong>Plano Contratado:</strong> Conecta+ Fibra Ultra 500MB</MudText>
+                <MudText Typo="Typo.body1"><strong>Valor Mensal:</strong> R$ 99,90</MudText>
+                <MudText Typo="Typo.body1"><strong>Data de Vencimento:</strong> Todo dia 10</MudText>
+            </MudStack>
+
+            <MudDivider Class="my-4" />
+
+            <MudText Typo="Typo.h6" GutterBottom="true">Termos e Condições</MudText>
+            <MudText Typo="Typo.body2" Align="Align.Justify">
+                Este contrato de prestação de serviços de comunicação multimídia tem como objeto a prestação de serviços de internet em banda larga pela Conecta+ ao cliente. A velocidade de conexão contratada é de 500 Mbps de download e 250 Mbps de upload, garantindo o mínimo de 80% da taxa de transmissão contratada, conforme regulamentação da Anatel...
+            </MudText>
+
+            <MudStack AlignItems="AlignItems.End" Class="mt-6">
+                <MudButton Href="/chamado/novo"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Headset">
+                    Dúvidas? Fale Conosco
+                </MudButton>
+            </MudStack>
+
+        </MudCardContent>
+    </MudCard>
+
+</MudContainer>

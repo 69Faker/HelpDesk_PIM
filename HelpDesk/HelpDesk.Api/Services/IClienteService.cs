@@ -6,5 +6,7 @@ namespace HelpDesk.Api.Services
     {
         Task<Cliente?> AutenticarAsync(string cpf, string senha);
         Task AlterarSenhaAsync(int clienteId, string senhaAntiga, string novaSenha);
+
+        Task RedefinirSenhaAsync(string cpf, string email, string novaSenha);
     }
 }

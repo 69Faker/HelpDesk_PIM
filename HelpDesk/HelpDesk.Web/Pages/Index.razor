@@ -1,80 +1,11 @@
 ﻿@page "/"
+@inject NavigationManager NavigationManager
 
-<PageTitle>Dashboard</PageTitle>
-
-<MudGrid Spacing="4">
-    <MudItem xs="12" sm="6" md="4">
-        <MudCard Elevation="2">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Style="color: var(--mud-palette-info);">Chamados Abertos</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2">Aguardando atendimento ou em espera.</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-
-    <MudItem xs="12" sm="6" md="4">
-        <MudCard Elevation="2">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Style="color: var(--mud-palette-warning);">Em Atendimento</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2">Nossa equipe já está trabalhando neles.</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-
-    <MudItem xs="12" sm="12" md="4">
-        <MudCard Elevation="2">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Style="color: var(--mud-palette-success);">Finalizados</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.h3">0</MudText>
-                <MudText Typo="Typo.body2">Problemas resolvidos com sucesso.</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-</MudGrid>
-
-<MudPaper Elevation="2" Class="mt-6 pa-4">
-    <MudText Typo="Typo.h5" GutterBottom="true">Ações Rápidas</MudText>
-    <MudGrid Spacing="2" Justify="Justify.Center">
-        <MudItem xs="12" sm="4">
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Headset"
-                       Href="/chamado/novo"
-                       FullWidth="true">
-                Abrir um Novo Chamado
-            </MudButton>
-        </MudItem>
-        <MudItem xs="12" sm="4">
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Inherit"
-                       StartIcon="@Icons.Material.Filled.History"
-                       Href="/chamados"
-                       FullWidth="true">
-                Ver Histórico
-            </MudButton>
-        </MudItem>
-        <MudItem xs="12" sm="4">
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Inherit"
-                       StartIcon="@Icons.Material.Filled.Wifi"
-                       Href="/ajuda"
-                       FullWidth="true">
-                Soluções Rápidas
-            </MudButton>
-        </MudItem>
-    </MudGrid>
-</MudPaper>
+@code {
+    protected override void OnInitialized()
+    {
+        // Quando qualquer usuário chegar na raiz "/",
+        // redirecione-o imediatamente para a página de login.
+        NavigationManager.NavigateTo("/login");
+    }
+}
